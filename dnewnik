@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📚 Электронный дневник</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Tahoma,sans-serif}
+body{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;padding:20px;color:#333}
+header{text-align:center;color:#fff;margin-bottom:30px}
+header h1{font-size:2.2rem;margin-bottom:5px}
+.subtitle{opacity:.9}
+main{max-width:1200px;margin:0 auto}
+.subjects-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.subject-card{background:#fff;border-radius:12px;padding:16px;box-shadow:0 4px 15px rgba(0,0,0,.1);display:flex;flex-direction:column;gap:10px}
+.subject-card h3{font-size:1.1rem;color:#4a3f8f;border-bottom:2px solid #eee;padding-bottom:8px}
+.grades{display:flex;flex-wrap:wrap;gap:6px;min-height:32px}
+.grade{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;color:#fff;cursor:pointer;transition:transform .15s}
+.grade:hover{transform:scale(1.15)}
+.grade.g5{background:#4caf50}.grade.g4{background:#8bc34a}.grade.g3{background:#ff9800}.grade.g2{background:#f44336}
+.add-grade{display:flex;gap:6px;margin-top:auto}
+.add-grade select,.add-grade input{padding:6px;border:1px solid #ddd;border-radius:6px;font-size:.9rem}
+.add-grade select{flex:0 0 70px}.add-grade input{flex:1;min-width:0}
+.add-grade button{background:#667eea;color:#fff;border:none;border-radius:6px;padding:6px 12px;cursor:pointer;font-size:.9rem}
+.add-grade button:hover{background:#556cd6}
+.stats{background:#fff;border-radius:12px;padding:20px;margin-top:30px;box-shadow:0 4px 15px rgba(0,0,0,.1)}
+.stats h2{color:#4a3f8f;margin-bottom:15px}
+.avg-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0}
+.avg-row:last-child{border-bottom:none}
+.avg-value{font-weight:bold;color:#667eea}
+footer{max-width:1200px;margin:30px auto 0;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+footer button{background:#fff;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;color:#4a3f8f;box-shadow:0 2px 8px rgba(0,0,0,.1);transition:transform .15s}
+footer button:hover{transform:translateY(-2px)}
+@media(max-width:500px){header h1{font-size:1.6rem}.subjects-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <h1>📚 Электронный дневник</h1>
+  <p class="subtitle">Оценки по предметам</p>
+</header>
+<main>
+  <div id="subjects" class="subjects-grid"></div>
+  <div class="stats">
+    <h2>📊 Средний балл по предметам</h2>
+    <div id="averages"></div>
+  </div>
+</main>
+<footer>
+  <button id="exportBtn">💾 Экспорт (JSON)</button>
+  <button id="clearBtn">🗑️ Очистить всё</button>
+</footer>
+<script>
+const SUBJECTS=['Литература','Русский','Алгебра','Геометрия','Вероятность','Физра','Общество','История','ОБЗР','Немецкий','Информатика','География','Труд','Биология','Химия','Физика'];
+const STORAGE_KEY='school_diary_grades_v1';
+let data=loadData();
+function loadData(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||{}}catch{return{}}}
+function saveData(){localStorage.setItem(STORAGE_KEY,JSON.stringify(data))}
+function render(){
+  const container=document.getElementById('subjects');
+  container.innerHTML='';
+  SUBJECTS.forEach(subject=>{
+    const card=document.createElement('div');
+    card.className='subject-card';
+    const title=document.createElement('h3');
+    title.textContent=subject;
+    card.appendChild(title);
+    const gradesBox=document.createElement('div');
+    gradesBox.className='grades';
+    const grades=data[subject]||[];
+    grades.forEach((g,idx)=>{
+      const span=document.createElement('span');
+      span.className='grade g'+g;
+      span.textContent=g;
+      span.title='Нажмите, чтобы удалить';
+      span.onclick=()=>{grades.splice(idx,1);data[subject]=grades;saveData();render();};
+      gradesBox.appendChild(span);
+    });
+    card.appendChild(gradesBox);
+    const form=document.createElement('div');
+    form.className='add-grade';
+    const select=document.createElement('select');
+    [5,4,3,2].forEach(v=>{const opt=document.createElement('option');opt.value=v;opt.textContent=v;select.appendChild(opt);});
+    const dateInput=document.createElement('input');
+    dateInput.type='date';
+    dateInput.value=new Date().toISOString().slice(0,10);
+    const btn=document.createElement('button');
+    btn.textContent='+';
+    btn.title='Добавить оценку';
+    btn.onclick=()=>{const grade=parseInt(select.value);if(!data[subject])data[subject]=[];data[subject].push(grade);saveData();render();};
+    form.appendChild(select);form.appendChild(dateInput);form.appendChild(btn);
+    card.appendChild(form);
+    container.appendChild(card);
+  });
+  renderAverages();
+}
+function renderAverages(){
+  const box=document.getElementById('averages');
+  box.innerHTML='';
+  const rows=SUBJECTS.map(s=>{
+    const grades=data[s]||[];
+    if(grades.length===0)return{subject:s,avg:null};
+    const sum=grades.reduce((a,b)=>a+b,0);
+    return{subject:s,avg:(sum/grades.length).toFixed(2)};
+  }).filter(r=>r.avg!==null);
+  if(rows.length===0){box.innerHTML='<p style="color:#888">Пока нет оценок</p>';return;}
+  rows.forEach(r=>{
+    const div=document.createElement('div');
+    div.className='avg-row';
+    div.innerHTML=`<span>${r.subject}</span><span class="avg-value">${r.avg}</span>`;
+    box.appendChild(div);
+  });
+}
+document.getElementById('exportBtn').onclick=()=>{
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`diary_${new Date().toISOString().slice(0,10)}.json`;a.click();
+  URL.revokeObjectURL(url);
+};
+document.getElementById('clearBtn').onclick=()=>{
+  if(confirm('Удалить ВСЕ оценки? Это действие необратимо.')){data={};saveData();render();}
+};
+render();
+</script>
+</body>
+</html>
