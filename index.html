@@ -88,65 +88,22 @@ td:first-child, th:first-child {
   width: 60%;
 }
 
-/* Инпуты внутри таблицы */
-input[type="number"] {
-  width: 100%;
-  max-width: 80px;
-  padding: 8px;
-  border: 2px solid transparent;
-  border-radius: 8px;
-  background: transparent;
-  text-align: center;
-  font-family: 'Nunito', sans-serif;
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #6b21a8;
-  outline: none;
-  transition: all 0.2s;
-}
-
-input[type="number"]:focus {
-  background: #fff;
-  border-color: #a855f7;
-  box-shadow: 0 0 8px rgba(168, 85, 247, 0.4);
-}
-
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-/* Кнопки */
-footer {
-  display: flex;
-  gap: 15px;
+/* Стили для готовых оценок */
+.grade {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  margin-top: 30px;
-}
-
-button {
-  background: #a855f7;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 12px;
-  font-family: 'Nunito', sans-serif;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 1.4rem;
   font-weight: 700;
-  font-size: 1rem;
-  cursor: pointer;
-  box-shadow: 0 4px 0 #7e22ce;
-  transition: transform 0.1s, box-shadow 0.1s;
+  color: white;
+  box-shadow: 0 3px 0 rgba(0,0,0,0.15);
 }
 
-button:active {
-  transform: translateY(4px);
-  box-shadow: 0 0 0 #7e22ce;
-}
-
-button:hover {
-  background: #9333ea;
-}
+.grade-5 { background: #9333ea; } /* Пятерки */
+.grade-4 { background: #c084fc; } /* Четверки */
 
 /* Декор */
 .decorations {
@@ -167,7 +124,8 @@ button:hover {
   .diary-container { padding: 15px; }
   .main-title { font-size: 2.5rem; }
   td:first-child, th:first-child { width: 65%; }
-  input[type="number"] { font-size: 1.1rem; }
+  .grade { width: 36px; height: 36px; font-size: 1.1rem; }
+  th, td { padding: 8px 4px; font-size: 1rem; }
 }
 </style>
 </head>
@@ -177,7 +135,8 @@ button:hover {
   <h1 class="main-title">Мои оценки</h1>
 
   <div class="section-title">1 четверть</div>
-  <table id="gradesTable">
+  
+  <table>
     <thead>
       <tr>
         <th>Предмет</th>
@@ -185,14 +144,24 @@ button:hover {
       </tr>
     </thead>
     <tbody>
-      <!-- Заполняется через JS -->
+      <tr><td>Литература</td><td><span class="grade grade-4">4</span></td></tr>
+      <tr><td>Русский</td><td><span class="grade grade-4">4</span></td></tr>
+      <tr><td>Алгебра</td><td><span class="grade grade-4">4</span></td></tr>
+      <tr><td>Геометрия</td><td><span class="grade grade-4">4</span></td></tr>
+      <tr><td>Вероятность</td><td><span class="grade grade-5">5</span></td></tr>
+      <tr><td>Физра</td><td><span class="grade grade-4">4</span></td></tr>
+      <tr><td>Общество</td><td><span class="grade grade-4">4</span></td></tr>
+      <tr><td>История</td><td><span class="grade grade-4">4</span></td></tr>
+      <tr><td>ОБЗР</td><td><span class="grade grade-4">4</span></td></tr>
+      <tr><td>Немецкий</td><td><span class="grade grade-4">4</span></td></tr>
+      <tr><td>Информатика</td><td><span class="grade grade-5">5</span></td></tr>
+      <tr><td>География</td><td><span class="grade grade-4">4</span></td></tr>
+      <tr><td>Труд</td><td><span class="grade grade-5">5</span></td></tr>
+      <tr><td>Биология</td><td><span class="grade grade-4">4</span></td></tr>
+      <tr><td>Химия</td><td><span class="grade grade-4">4</span></td></tr>
+      <tr><td>Физика</td><td><span class="grade grade-4">4</span></td></tr>
     </tbody>
   </table>
-
-  <footer>
-    <button id="saveBtn">💾 Сохранить</button>
-    <button id="clearBtn">🗑️ Сбросить</button>
-  </footer>
 
   <div class="decorations">
     <div class="books">📚</div>
@@ -200,109 +169,5 @@ button:hover {
   </div>
 </div>
 
-<script>
-// Список предметов
-const SUBJECTS = [
-  'Литература', 'Русский', 'Алгебра', 'Геометрия', 'Вероятность',
-  'Физра', 'Общество', 'История', 'ОБЗР', 'Немецкий',
-  'Информатика', 'География', 'Труд', 'Биология', 'Химия', 'Физика'
-];
-
-// Оценки по умолчанию (как ты просил: везде 4, кроме отдельных предметов - 5)
-const DEFAULT_GRADES = {
-  'Литература': 4,
-  'Русский': 4,
-  'Алгебра': 4,
-  'Геометрия': 4,
-  'Вероятность': 5,
-  'Физра': 4,
-  'Общество': 4,
-  'История': 4,
-  'ОБЗР': 5,
-  'Немецкий': 4,
-  'Информатика': 4,
-  'География': 4,
-  'Труд': 4,
-  'Биология': 4,
-  'Химия': 4,
-  'Физика': 5
-};
-
-const STORAGE_KEY = 'diary_q1_v1';
-
-// Загрузка данных
-let data = {};
-try {
-  data = JSON.parse(localStorage.getItem(STORAGE_KEY));
-  if (!data || Object.keys(data).length === 0) {
-    data = { ...DEFAULT_GRADES }; // Если пусто, ставим дефолтные
-  }
-} catch(e) { 
-  data = { ...DEFAULT_GRADES }; 
-}
-
-// Сохранение
-function saveData() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-}
-
-// Отрисовка
-function render() {
-  const tbody = document.querySelector('#gradesTable tbody');
-  tbody.innerHTML = '';
-
-  SUBJECTS.forEach(subject => {
-    // Если оценки нет, ставим пустоту
-    if (data[subject] === undefined) data[subject] = '';
-
-    const row = document.createElement('tr');
-    
-    // Ячейка с названием
-    const nameCell = document.createElement('td');
-    nameCell.textContent = subject;
-    row.appendChild(nameCell);
-
-    // Ячейка с инпутом
-    const valCell = document.createElement('td');
-    const input = document.createElement('input');
-    input.type = 'number';
-    input.min = 1;
-    input.max = 5;
-    input.value = data[subject];
-    
-    input.addEventListener('input', (e) => {
-      let val = e.target.value;
-      if (val > 5) e.target.value = 5;
-      if (val < 1 && val !== '') e.target.value = 1;
-      
-      data[subject] = e.target.value;
-      saveData();
-    });
-
-    valCell.appendChild(input);
-    row.appendChild(valCell);
-    
-    tbody.appendChild(row);
-  });
-}
-
-// Кнопка "Сбросить к оценкам по умолчанию"
-document.getElementById('clearBtn').onclick = () => {
-  if (confirm('Сбросить все оценки обратно к стандартным (4 и 5)?')) {
-    data = { ...DEFAULT_GRADES };
-    saveData();
-    render();
-  }
-};
-
-// Кнопка "Сохранить"
-document.getElementById('saveBtn').onclick = () => {
-  saveData();
-  alert('Твои оценки за 1 четверть сохранены!');
-};
-
-// Запуск
-render();
-</script>
 </body>
 </html>
